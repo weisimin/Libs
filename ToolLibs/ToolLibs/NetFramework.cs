@@ -16,6 +16,9 @@ using System.IO.Compression;
 
 using System.Web.Configuration;
 using System.Runtime.InteropServices;
+using System.Web.Script.Serialization;
+using System.Collections;
+
 namespace NetFramework
     {
         #region 用户检验相关
@@ -1381,6 +1384,62 @@ namespace NetFramework
                 section.SectionInformation.UnprotectSection();
                 config.Save();
             }
+        }
+    }
+
+    public class Util_DataTable
+    {
+        /// <summary>
+        /// DataTable序列化
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
+        public static string SerializeDataTable(DataTable dt)
+        {
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            List<Dictionary<string, object>> list = new List<Dictionary<string, object>>();
+            foreach (DataRow dr in dt.Rows)//每一行信息，新建一个Dictionary<string,object>,将该行的每列信息加入到字典
+            {
+                Dictionary<string, object> result = new Dictionary<string, object>();
+                foreach (DataColumn dc in dt.Columns)
+                {
+                    result.Add(dc.ColumnName, dr[dc].ToString());
+                }
+                list.Add(result);
+            }
+            return serializer.Serialize(list);//调用Serializer方法
+        }
+        /// <summary>
+        /// DataTable反序列化
+        /// </summary>
+        /// <param name="strJson"></param>
+        /// <returns></returns>
+        public static DataTable DeserializerTable(string strJson)
+        {
+            DataTable dt = new DataTable();
+            JavaScriptSerializer serializer = new JavaScriptSerializer();
+            ArrayList arralList = serializer.Deserialize<ArrayList>(strJson);//反序列化ArrayList类型
+            if (arralList.Count > 0)//反序列化后ArrayList个数不为0
+            {
+                foreach (Dictionary<string, object> row in arralList)
+                {
+                    if (dt.Columns.Count == 0)//新建的DataTable中无任何信息，为其添加列名及类型
+                    {
+                        foreach (string key in row.Keys)
+                        {
+                            dt.Columns.Add(key, row[key].GetType());//添加dt的列名
+                        }
+                    }
+                    DataRow dr = dt.NewRow();
+                    foreach (string key in row.Keys)//讲arrayList中的值添加到DataTable中
+                    {
+
+                        dr[key] = row[key];//添加列值
+                    }
+                    dt.Rows.Add(dr);//添加一行
+                }
+            }
+            return dt;
         }
     }
 
