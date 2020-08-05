@@ -19,6 +19,10 @@ using System.Runtime.InteropServices;
 using System.Web.Script.Serialization;
 using System.Collections;
 
+
+
+using System.Xml.Serialization;
+
 namespace NetFramework
     {
         #region 用户检验相关
@@ -334,6 +338,7 @@ namespace NetFramework
             NetFramework.Console.WriteLine("--------------网站下载总时间：" + (DateTime.Now - Pre).TotalSeconds.ToString(), false);
             return Result;
         }
+
 
         public static bool CheckValidationResult(object sender
             , System.Security.Cryptography.X509Certificates.X509Certificate certificate
@@ -1441,6 +1446,37 @@ namespace NetFramework
             }
             return dt;
         }
+
+        public static string SerializeDataTableXml(DataTable pDt)
+        {
+            // 序列化DataTable
+            StringBuilder sb = new StringBuilder();
+            XmlWriter writer = XmlWriter.Create(sb);
+            XmlSerializer serializer = new XmlSerializer(typeof(DataTable));
+            serializer.Serialize(writer, pDt);
+            writer.Close();
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 反序列化DataTable
+        /// </summary>
+        /// <param name="pXml">序列化的DataTable</param>
+        /// <returns>DataTable</returns>
+        public static DataTable DeserializeDataTableXml(string pXml)
+        {
+
+            StringReader strReader = new StringReader(pXml);
+            XmlReader xmlReader = XmlReader.Create(strReader);
+            XmlSerializer serializer = new XmlSerializer(typeof(DataTable));
+
+            DataTable dt = serializer.Deserialize(xmlReader) as DataTable;
+
+            return dt;
+        }
+
+
     }
 
 }
