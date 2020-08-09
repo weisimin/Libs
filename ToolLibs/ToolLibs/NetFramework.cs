@@ -24,294 +24,294 @@ using System.Collections;
 using System.Xml.Serialization;
 
 namespace NetFramework
+{
+    #region 用户检验相关
+    public class Util_User
     {
-        #region 用户检验相关
-        public class Util_User
+
+        public static bool? ValidateUser(string UserName, string Password)
         {
-
-            public static bool? ValidateUser(string UserName, string Password)
+            if (Membership.GetUser(UserName) == null)
             {
-                if (Membership.GetUser(UserName) == null)
-                {
-                    return null;
-                }
-                return Membership.ValidateUser(UserName, Password);
-
+                return null;
             }
-
-            //public static bool? ValidateWebUser(string UserName, string Password, ref Guid ProviderUserKey, ref string AspxAuth, ref CookieContainer otscookie)
-            //{
-            //    WeixinRoboot.RobootWeb.WebService ws = new WeixinRoboot.RobootWeb.WebService();
-            //    ws.CookieContainer = new CookieContainer();
-
-            //    string Result = ws.UserLogIn(UserName, Password);
-            //    if (Result.Contains("错误"))
-            //    {
-            //        return null;
-            //    }
-
-            //    else
-            //    {
-            //        ProviderUserKey = Guid.Parse(Result);
-            //        AspxAuth = ws.GetUserToken(UserName, Password);
-            //        otscookie = ws.CookieContainer;
-            //        return true;
-            //    }
-            //}
-
-        }
-        #endregion
-
-        #region  邮件相关
-        public class Util_Email
-        {
-            public static void EMail_SendEmail(string Server, Int32 Port, bool EnableSSL, string UserName, string Password, System.Net.Mail.MailAddress FromAddress, List<System.Net.Mail.MailAddress> To, List<System.Net.Mail.MailAddress> CC, string Subject, string BodyHtml, List<System.Net.Mail.Attachment> attachlist)
-            {
-                //简单邮件传输协议类
-                System.Net.Mail.SmtpClient client = new System.Net.Mail.SmtpClient();
-                client.Host = Server;//邮件服务器
-                client.Port = Port;//smtp主机上的端口号,默认是25.
-                client.EnableSsl = EnableSSL;
-
-                client.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;//邮件发送方式:通过网络发送到SMTP服务器
-
-                client.UseDefaultCredentials = true;
-                client.Credentials = new NetworkCredential(UserName, Password); ;//凭证,发件人登录邮箱的用户名和密码
-
-
-
-                //电子邮件信息类
-                System.Net.Mail.MailMessage mailMessage = new System.Net.Mail.MailMessage();//创建一个电子邮件类
-                                                                                            //似乎部分邮件不允许显示人改名
-                mailMessage.From = FromAddress;
-
-                foreach (System.Net.Mail.MailAddress item in To)
-                {
-                    mailMessage.To.Add(item);
-                }
-                foreach (System.Net.Mail.MailAddress item in CC)
-                {
-                    mailMessage.CC.Add(item);
-                }
-
-
-                mailMessage.Subject = Subject;
-                mailMessage.SubjectEncoding = System.Text.Encoding.UTF8;//邮件主题编码
-
-                mailMessage.Body = BodyHtml;//可为html格式文本
-                mailMessage.BodyEncoding = System.Text.Encoding.GetEncoding("UTF-8");//邮件内容编码
-                mailMessage.IsBodyHtml = true;//邮件内容是否为html格式
-
-                mailMessage.Priority = System.Net.Mail.MailPriority.High;//邮件的优先级,有三个值:高(在邮件主题前有一个红色感叹号,表示紧急),低(在邮件主题前有一个蓝色向下箭头,表示缓慢),正常(无显示).
-                                                                         //附件
-                foreach (System.Net.Mail.Attachment att in attachlist)
-                {
-                    mailMessage.Attachments.Add(att);
-                }
-                //异步传输事件
-                client.Timeout = 60000;
-                client.SendCompleted += new System.Net.Mail.SendCompletedEventHandler(client_SendCompleted);
-                try
-                {
-
-                    client.SendAsync(mailMessage, mailMessage);//发送邮件
-                }
-                catch (Exception AnyError)
-                {
-                    MessageBox.Show(AnyError.Message);
-                }
-
-
-            }
-
-            static void client_SendCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
-            {
-                if (e.Error != null)
-                {
-                    MessageBox.Show(e.Error.Message);
-                }
-                else
-                {
-                    MessageBox.Show("发送完成");
-                }
-            }
-
-            /// <summary>
-            /// 验证EMail是否合法
-            /// </summary>
-            /// <param name="email">要验证的Email</param>
-            public static bool IsEmail(string emailStr)
-            {
-                return Regex.IsMatch(emailStr, @"^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$");
-            }
-
-            public static string SplitGetLast(string EMLFolder)
-            {
-                string Result = "";
-                string[] FullList = EMLFolder.Split("\"\"".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                for (int i = FullList.Length - 1; i >= 0; i--)
-                {
-                    if ((FullList[i] != ""))
-                    {
-                        Result = FullList[i];
-                        break;
-                    }
-                }
-                return Result;
-            }
-
-        }
-        #endregion
-
-        #region 半数据转换
-        public class Util_Convert
-        {
-            public static bool HalfBool(string Value)
-            {
-                try
-                {
-                    return Convert.ToBoolean(Value);
-                }
-                catch (Exception)
-                {
-
-                    return false;
-                }
-            }
-            public static string ToString(object param)
-            {
-                if (param == null)
-                {
-                    return "";
-                }
-                else
-                {
-                    return param.ToString();
-                }
-            }
-        }
-        #endregion
-
-        #region
-        //Quoted-Printable 解码
-        public class Util_Quoted
-        {
-            private const string QpSinglePattern = "(\\=([0-9A-F][0-9A-F]))";
-
-            private const string QpMutiplePattern = @"((\=[0-9A-F][0-9A-F])+=?\s*)+";
-
-            public static string Decode(string contents, Encoding encoding)
-            {
-                if (contents == null)
-                {
-                    throw new ArgumentNullException("contents");
-                }
-
-                // 替换被编码的内容
-                string result = Regex.Replace(contents, QpMutiplePattern, new MatchEvaluator(delegate (Match m)
-                {
-                    List<byte> buffer = new List<byte>();
-                    // 把匹配得到的多行内容逐个匹配得到后转换成byte数组
-                    MatchCollection matches = Regex.Matches(m.Value, QpSinglePattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-                    foreach (Match match in matches)
-                    {
-                        buffer.Add((byte)HexToByte(match.Groups[2].Value.Trim()));
-                    }
-                    return encoding.GetString(buffer.ToArray());
-                }), RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-                // 替换多余的链接=号
-                result = Regex.Replace(result, @"=\s+", "");
-
-                return result;
-            }
-
-            private static int HexToByte(string hex)
-            {
-                int num1 = 0;
-                string text1 = "0123456789ABCDEF";
-                for (int num2 = 0; num2 < hex.Length; num2++)
-                {
-                    if (text1.IndexOf(hex[num2]) == -1)
-                    {
-                        return -1;
-                    }
-                    num1 = (num1 * 0x10) + text1.IndexOf(hex[num2]);
-                }
-                return num1;
-            }
+            return Membership.ValidateUser(UserName, Password);
 
         }
 
-        #endregion
+        //public static bool? ValidateWebUser(string UserName, string Password, ref Guid ProviderUserKey, ref string AspxAuth, ref CookieContainer otscookie)
+        //{
+        //    WeixinRoboot.RobootWeb.WebService ws = new WeixinRoboot.RobootWeb.WebService();
+        //    ws.CookieContainer = new CookieContainer();
 
-        public class Util_Sql
+        //    string Result = ws.UserLogIn(UserName, Password);
+        //    if (Result.Contains("错误"))
+        //    {
+        //        return null;
+        //    }
+
+        //    else
+        //    {
+        //        ProviderUserKey = Guid.Parse(Result);
+        //        AspxAuth = ws.GetUserToken(UserName, Password);
+        //        otscookie = ws.CookieContainer;
+        //        return true;
+        //    }
+        //}
+
+    }
+    #endregion
+
+    #region  邮件相关
+    public class Util_Email
+    {
+        public static void EMail_SendEmail(string Server, Int32 Port, bool EnableSSL, string UserName, string Password, System.Net.Mail.MailAddress FromAddress, List<System.Net.Mail.MailAddress> To, List<System.Net.Mail.MailAddress> CC, string Subject, string BodyHtml, List<System.Net.Mail.Attachment> attachlist)
         {
+            //简单邮件传输协议类
+            System.Net.Mail.SmtpClient client = new System.Net.Mail.SmtpClient();
+            client.Host = Server;//邮件服务器
+            client.Port = Port;//smtp主机上的端口号,默认是25.
+            client.EnableSsl = EnableSSL;
 
-            public static object RunSqlText(string ConnectionStringName, string SqlText)
+            client.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;//邮件发送方式:通过网络发送到SMTP服务器
+
+            client.UseDefaultCredentials = true;
+            client.Credentials = new NetworkCredential(UserName, Password); ;//凭证,发件人登录邮箱的用户名和密码
+
+
+
+            //电子邮件信息类
+            System.Net.Mail.MailMessage mailMessage = new System.Net.Mail.MailMessage();//创建一个电子邮件类
+                                                                                        //似乎部分邮件不允许显示人改名
+            mailMessage.From = FromAddress;
+
+            foreach (System.Net.Mail.MailAddress item in To)
             {
-                object Result = new object();
-                string dbConnection = ConfigurationManager.ConnectionStrings[ConnectionStringName].ConnectionString;
-                SqlConnection TempConnection = new SqlConnection(dbConnection);//连接字符串
-                try
-                {
-                    SqlDataAdapter ToRun = new SqlDataAdapter();  //創建SqlDataAdapter 类
-
-                    ToRun.SelectCommand = new SqlCommand(SqlText, TempConnection);
-                    TempConnection.Open();
-                    ToRun.SelectCommand.CommandType = System.Data.CommandType.Text;
-                    Result = ToRun.SelectCommand.ExecuteScalar();
-                }
-                catch (Exception AnyError)
-                {
-                    throw AnyError;
-                }
-                finally
-                {
-                    TempConnection.Close();
-                }
-
-
-                return Result;
+                mailMessage.To.Add(item);
             }
-            public static DataTable RunSqlDataTable(string ConnectionStringName, string SqlText)
+            foreach (System.Net.Mail.MailAddress item in CC)
+            {
+                mailMessage.CC.Add(item);
+            }
+
+
+            mailMessage.Subject = Subject;
+            mailMessage.SubjectEncoding = System.Text.Encoding.UTF8;//邮件主题编码
+
+            mailMessage.Body = BodyHtml;//可为html格式文本
+            mailMessage.BodyEncoding = System.Text.Encoding.GetEncoding("UTF-8");//邮件内容编码
+            mailMessage.IsBodyHtml = true;//邮件内容是否为html格式
+
+            mailMessage.Priority = System.Net.Mail.MailPriority.High;//邮件的优先级,有三个值:高(在邮件主题前有一个红色感叹号,表示紧急),低(在邮件主题前有一个蓝色向下箭头,表示缓慢),正常(无显示).
+                                                                     //附件
+            foreach (System.Net.Mail.Attachment att in attachlist)
+            {
+                mailMessage.Attachments.Add(att);
+            }
+            //异步传输事件
+            client.Timeout = 60000;
+            client.SendCompleted += new System.Net.Mail.SendCompletedEventHandler(client_SendCompleted);
+            try
             {
 
-                DataTable Result = new DataTable();
-                string dbConnection = ConfigurationManager.ConnectionStrings[ConnectionStringName].ConnectionString;
-                SqlConnection TempConnection = new SqlConnection(dbConnection);//连接字符串
-                try
-                {
-                    SqlDataAdapter ToRun = new SqlDataAdapter(SqlText, TempConnection);  //創建SqlDataAdapter 类
-                    TempConnection.Open();
-                    ToRun.Fill(Result);
-
-                }
-                catch (Exception AnyError)
-                {
-                    throw AnyError;
-                }
-                finally
-                {
-                    TempConnection.Close();
-                }
+                client.SendAsync(mailMessage, mailMessage);//发送邮件
+            }
+            catch (Exception AnyError)
+            {
+                MessageBox.Show(AnyError.Message);
+            }
 
 
-                return Result;
+        }
+
+        static void client_SendCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        {
+            if (e.Error != null)
+            {
+                MessageBox.Show(e.Error.Message);
+            }
+            else
+            {
+                MessageBox.Show("发送完成");
             }
         }
+
+        /// <summary>
+        /// 验证EMail是否合法
+        /// </summary>
+        /// <param name="email">要验证的Email</param>
+        public static bool IsEmail(string emailStr)
+        {
+            return Regex.IsMatch(emailStr, @"^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$");
+        }
+
+        public static string SplitGetLast(string EMLFolder)
+        {
+            string Result = "";
+            string[] FullList = EMLFolder.Split("\"\"".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            for (int i = FullList.Length - 1; i >= 0; i--)
+            {
+                if ((FullList[i] != ""))
+                {
+                    Result = FullList[i];
+                    break;
+                }
+            }
+            return Result;
+        }
+
+    }
+    #endregion
+
+    #region 半数据转换
+    public class Util_Convert
+    {
+        public static bool HalfBool(string Value)
+        {
+            try
+            {
+                return Convert.ToBoolean(Value);
+            }
+            catch (Exception)
+            {
+
+                return false;
+            }
+        }
+        public static string ToString(object param)
+        {
+            if (param == null)
+            {
+                return "";
+            }
+            else
+            {
+                return param.ToString();
+            }
+        }
+    }
+    #endregion
+
+    #region
+    //Quoted-Printable 解码
+    public class Util_Quoted
+    {
+        private const string QpSinglePattern = "(\\=([0-9A-F][0-9A-F]))";
+
+        private const string QpMutiplePattern = @"((\=[0-9A-F][0-9A-F])+=?\s*)+";
+
+        public static string Decode(string contents, Encoding encoding)
+        {
+            if (contents == null)
+            {
+                throw new ArgumentNullException("contents");
+            }
+
+            // 替换被编码的内容
+            string result = Regex.Replace(contents, QpMutiplePattern, new MatchEvaluator(delegate (Match m)
+            {
+                List<byte> buffer = new List<byte>();
+                // 把匹配得到的多行内容逐个匹配得到后转换成byte数组
+                MatchCollection matches = Regex.Matches(m.Value, QpSinglePattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                foreach (Match match in matches)
+                {
+                    buffer.Add((byte)HexToByte(match.Groups[2].Value.Trim()));
+                }
+                return encoding.GetString(buffer.ToArray());
+            }), RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+            // 替换多余的链接=号
+            result = Regex.Replace(result, @"=\s+", "");
+
+            return result;
+        }
+
+        private static int HexToByte(string hex)
+        {
+            int num1 = 0;
+            string text1 = "0123456789ABCDEF";
+            for (int num2 = 0; num2 < hex.Length; num2++)
+            {
+                if (text1.IndexOf(hex[num2]) == -1)
+                {
+                    return -1;
+                }
+                num1 = (num1 * 0x10) + text1.IndexOf(hex[num2]);
+            }
+            return num1;
+        }
+
+    }
+
+    #endregion
+
+    public class Util_Sql
+    {
+
+        public static object RunSqlText(string ConnectionStringName, string SqlText)
+        {
+            object Result = new object();
+            string dbConnection = ConfigurationManager.ConnectionStrings[ConnectionStringName].ConnectionString;
+            SqlConnection TempConnection = new SqlConnection(dbConnection);//连接字符串
+            try
+            {
+                SqlDataAdapter ToRun = new SqlDataAdapter();  //創建SqlDataAdapter 类
+
+                ToRun.SelectCommand = new SqlCommand(SqlText, TempConnection);
+                TempConnection.Open();
+                ToRun.SelectCommand.CommandType = System.Data.CommandType.Text;
+                Result = ToRun.SelectCommand.ExecuteScalar();
+            }
+            catch (Exception AnyError)
+            {
+                throw AnyError;
+            }
+            finally
+            {
+                TempConnection.Close();
+            }
+
+
+            return Result;
+        }
+        public static DataTable RunSqlDataTable(string ConnectionStringName, string SqlText)
+        {
+
+            DataTable Result = new DataTable();
+            string dbConnection = ConfigurationManager.ConnectionStrings[ConnectionStringName].ConnectionString;
+            SqlConnection TempConnection = new SqlConnection(dbConnection);//连接字符串
+            try
+            {
+                SqlDataAdapter ToRun = new SqlDataAdapter(SqlText, TempConnection);  //創建SqlDataAdapter 类
+                TempConnection.Open();
+                ToRun.Fill(Result);
+
+            }
+            catch (Exception AnyError)
+            {
+                throw AnyError;
+            }
+            finally
+            {
+                TempConnection.Close();
+            }
+
+
+            return Result;
+        }
+    }
 
     public class Util_File
     {
-        public static string ReadToEnd(String FilePath,Encoding Enc)
+        public static string ReadToEnd(String FilePath, Encoding Enc)
         {
-            FileStream fs = new FileStream(FilePath,FileMode.Open);
+            FileStream fs = new FileStream(FilePath, FileMode.Open);
             byte[] buf = new byte[fs.Length];
             fs.Read(buf, 0, buf.Length);
             fs.Close();
             return Enc.GetString(buf);
         }
-        public static void SaveToFile(String Content,String FilePath, Encoding Enc)
+        public static void SaveToFile(String Content, String FilePath, Encoding Enc)
         {
             FileStream fs = null;
             if (File.Exists(FilePath))
@@ -323,7 +323,7 @@ namespace NetFramework
                 fs = new FileStream(FilePath, FileMode.Create);
             }
             byte[] bfs = Enc.GetBytes(Content);
-            fs.Write(bfs,0,bfs.Length);
+            fs.Write(bfs, 0, bfs.Length);
             fs.Flush();
             fs.Close();
         }
@@ -1476,6 +1476,136 @@ namespace NetFramework
             return dt;
         }
 
+        //Base64 序列化
+
+        //        DataTable dt = new DataTable(); //用来转成byte[]的实例
+        //        dt.Columns.Add("a");
+        //dt.Rows.Add("b"); //添加一条测试数据 b
+        //System.IO.MemoryStream memory = new MemoryStream();//使用内存流来存这些byte[]
+        //        BinaryFormatter b = new BinaryFormatter();
+        //        b.Serialize(memory,dt); //系列化datatable,MS已经对datatable实现了系列化接口,如果你自定义的类要系列化,实现IFormatter 就可以类似做法
+        //byte[] buff = memory.GetBuffer(); //这里就可你想要的byte[],可以使用它来传输
+        //        memory.Close();
+
+        ////假如接收的仍是这个byte[] buff,这样来反系列化
+
+        //DataTable dt1 = (DataTable)b.Deserialize(new MemoryStream(buff)); //dt1是byte[]转回的datatable
+        //        Response.Write(dt1.Rows[0][0].ToString());
+
+        ////输出的是 "b"
+
+    }
+
+    /// <summary>
+    /// 这个类要尽可能保存，频繁创建会报调用频繁错误
+    /// </summary>
+    public class Util_WeChatEnterpriseMsg
+    {
+        public Util_WeChatEnterpriseMsg(string _Enterpriseid, string _AppSecret, string _AppAgent)
+        {
+            Enterpriseid = _Enterpriseid;
+            AppSecret = _AppSecret;
+            AppAgent = _AppAgent;
+        }
+        public string Enterpriseid
+        {
+            get;
+            set;
+        }
+        public string AppSecret { get; set; }
+        public string AppAgent { get; set; }
+        private CookieCollection cookie = new CookieCollection();
+        public String AccessToken
+        {
+            //企业ID            wx48e213f50ad641c8
+
+            //请求方式： GET（HTTPS）
+            //请求地址： https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=ID&corpsecret=SECRET
+
+
+            //AgentId            1000005
+            //Secret RysOH8IiVWHvi5kWyyheee7YAlvE6Z4q9uDRvHrYxqI
+            get
+            {
+                if (AccessTokenTimeOut == null || (DateTime.Now - AccessTokenTimeOut.Value).TotalMinutes > -5)
+                {
+                    String httpr = Util_WEB.OpenUrl("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=" + Enterpriseid + "&corpsecret=" + AppSecret, "", "", "GET", cookie);
+                    Newtonsoft.Json.Linq.JObject jr = Newtonsoft.Json.Linq.JObject.Parse(httpr);
+                    if (jr["errcode"].ToString() == "0")
+                    {
+                        _AccessToken = jr["access_token"].ToString();
+                        AccessTokenTimeOut = DateTime.Now.AddMinutes(Convert.ToInt32(jr["expires_in"].ToString ()));
+                        return _AccessToken;
+                    }
+                    else
+                    {
+                        return "get accesstoken error";
+                    }
+                }
+                else
+                {
+                    return _AccessToken;
+                }
+            }
+            set { }
+        }
+        private String _AccessToken;
+        public DateTime? AccessTokenTimeOut { get; set; }
+
+        public string SendTextMsg(string HtmlContent, string touser = "@all")
+        {
+            // https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=ACCESS_TOKEN
+            //           {
+            //               "touser" : "UserID1|UserID2|UserID3",
+            //  "toparty" : "PartyID1|PartyID2",
+            //  "totag" : "TagID1 | TagID2",
+            //  "msgtype" : "text",
+            //  "agentid" : 1,
+            //  "text" : {
+            //                   "content" : "你的快递已到，请携带工卡前往邮件中心领取。\n出发前可查看<a href=\"http://work.weixin.qq.com\">邮件中心视频实况</a>，聪明避开排队。"
+            //  },
+            //  "safe":0,
+            //  "enable_id_trans": 0,
+            //  "enable_duplicate_check": 0,
+            //  "duplicate_check_interval": 1800
+            //}
+            //            参数说明：
+
+            //参数 是否必须    说明
+            //touser  否 指定接收消息的成员，成员ID列表（多个接收者用‘|’分隔，最多支持1000个）。
+            //特殊情况：指定为”@all”，则向该企业应用的全部成员发送
+            //toparty 否 指定接收消息的部门，部门ID列表，多个接收者用‘|’分隔，最多支持100个。
+            //当touser为”@all”时忽略本参数
+            //totag   否 指定接收消息的标签，标签ID列表，多个接收者用‘|’分隔，最多支持100个。
+            //当touser为”@all”时忽略本参数
+            //msgtype 是 消息类型，此时固定为：text
+            //agentid 是 企业应用的id，整型。企业内部开发，可在应用的设置页面查看；第三方服务商，可通过接口 获取企业授权信息 获取该参数值
+            //content 是 消息内容，最长不超过2048个字节，超过将截断（支持id转译）
+            //safe 否   表示是否是保密消息，0表示否，1表示是，默认0
+            //enable_id_trans 否 表示是否开启id转译，0表示否，1表示是，默认0
+            //enable_duplicate_check  否 表示是否开启重复消息检查，0表示否，1表示是，默认0
+            //duplicate_check_interval    否 表示是否重复消息检查的时间间隔，默认1800s，最大不超过4小时
+            Newtonsoft.Json.Linq.JObject BODY = new Newtonsoft.Json.Linq.JObject();
+
+            BODY["touser"] = touser;
+            BODY["toparty"] = "";
+            BODY["msgtype"] = "text";
+            BODY["agentid"] = AppAgent;
+
+
+            Newtonsoft.Json.Linq.JObject text = new Newtonsoft.Json.Linq.JObject();
+            text["content"] = HtmlContent;
+            BODY["text"] = text;
+
+            BODY["safe"] = 0;
+            BODY["enable_id_trans"] = 0;
+            BODY["enable_duplicate_check"] = 0;
+            BODY["duplicate_check_interval"] = 1800;
+            CookieCollection cookie = new CookieCollection();
+
+            String Return = NetFramework.Util_WEB.OpenUrl("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + AccessToken, "", BODY.ToString(), "POST", cookie);
+            return Return;
+        }
 
     }
 
