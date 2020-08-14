@@ -1530,11 +1530,12 @@ namespace NetFramework
                 if (AccessTokenTimeOut == null || (DateTime.Now - AccessTokenTimeOut.Value).TotalMinutes > -5)
                 {
                     String httpr = Util_WEB.OpenUrl("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=" + Enterpriseid + "&corpsecret=" + AppSecret, "", "", "GET", cookie);
+                    NetFramework.Console.Write(httpr);
                     Newtonsoft.Json.Linq.JObject jr = Newtonsoft.Json.Linq.JObject.Parse(httpr);
                     if (jr["errcode"].ToString() == "0")
                     {
                         _AccessToken = jr["access_token"].ToString();
-                        AccessTokenTimeOut = DateTime.Now.AddMinutes(Convert.ToInt32(jr["expires_in"].ToString ()));
+                        AccessTokenTimeOut = DateTime.Now.AddSeconds(Convert.ToInt32(jr["expires_in"].ToString ()));
                         return _AccessToken;
                     }
                     else
@@ -1547,7 +1548,7 @@ namespace NetFramework
                     return _AccessToken;
                 }
             }
-            set { }
+            
         }
         private String _AccessToken;
         public DateTime? AccessTokenTimeOut { get; set; }
@@ -1604,6 +1605,7 @@ namespace NetFramework
             CookieCollection cookie = new CookieCollection();
 
             String Return = NetFramework.Util_WEB.OpenUrl("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + AccessToken, "", BODY.ToString(), "POST", cookie);
+            NetFramework.Console.Write(Return);
             return Return;
         }
 
