@@ -22,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,13 +37,36 @@
     <Reference Include="Brotli.NET">
       <HintPath>Libs\Brotli.NET.dll</HintPath>
     </Reference>
+    <Reference Include="ExcelDataReader">
+      <HintPath>Libs\ExcelDataReader.dll</HintPath>
+    </Reference>
+    <Reference Include="ExcelDataReader.DataSet">
+      <HintPath>Libs\ExcelDataReader.DataSet.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Libs\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI, Version=2.3.0.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libs\NPOI.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OOXML, Version=2.3.0.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libs\NPOI.OOXML.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXml4Net, Version=2.3.0.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libs\NPOI.OpenXml4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXmlFormats, Version=2.3.0.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libs\NPOI.OpenXmlFormats.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Extensions" />
@@ -57,6 +81,25 @@
   <ItemGroup>
     <Compile Include="NetFramework.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Libs\Brotli.NET.dll" />
+    <Content Include="Libs\Newtonsoft.Json.dll" />
+    <Content Include="Libs\NPOI.dll" />
+    <Content Include="Libs\NPOI.OOXML.dll" />
+    <Content Include="Libs\NPOI.OOXML.pdb" />
+    <Content Include="Libs\NPOI.OOXML.xml" />
+    <Content Include="Libs\NPOI.OpenXml4Net.dll" />
+    <Content Include="Libs\NPOI.OpenXml4Net.pdb" />
+    <Content Include="Libs\NPOI.OpenXml4Net.xml" />
+    <Content Include="Libs\NPOI.OpenXmlFormats.dll" />
+    <Content Include="Libs\NPOI.OpenXmlFormats.pdb" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Libs\NPOI.dll.refresh" />
+    <None Include="Libs\NPOI.OOXML.dll.refresh" />
+    <None Include="Libs\NPOI.OpenXml4Net.dll.refresh" />
+    <None Include="Libs\NPOI.OpenXmlFormats.dll.refresh" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
