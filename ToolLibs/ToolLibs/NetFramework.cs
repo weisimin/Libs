@@ -393,7 +393,7 @@ namespace NetFramework
         }
 
 
-        public static DataSet SelectFromXLS_New(string ServerFileName, string SelectSQL)
+        public static DataSet SelectFromExcelReader(string ServerFileName, string SelectSQL)
         {
 
 
@@ -1016,7 +1016,189 @@ namespace NetFramework
             return true;
         }
 
+        /// <summary>
+        /// 将DataTable导出到Excel
+        /// </summary>
+        /// <param name="htmlTable">html表格内容</param> 
+        /// <param name="fileName">仅文件名（非路径）</param> 
+        /// <returns>返回Excel文件绝对路径</returns>
+        public static string ExportHtmlTableToExcel(string htmlTable, string fileName)
+        {
+            string result;
 
+            #region 第一步：将HtmlTable转换为DataTable
+            htmlTable = htmlTable.Replace("\"", "'");
+            var trReg = new Regex(pattern: @"(?<=(<[t|T][r|R]))[\s\S]*?(?=(</[t|T][r|R]>))");
+            var trMatchCollection = trReg.Matches(htmlTable);
+            DataTable dt = new DataTable("data");
+            for (int i = 0; i < trMatchCollection.Count; i++)
+            {
+                var row = "<tr " + trMatchCollection[i].ToString().Trim() + "</tr>";
+                var tdReg = new Regex(pattern: @"(?<=(<[t|T][d|D|h|H]))[\s\S]*?(?=(</[t|T][d|D|h|H]>))");
+                var tdMatchCollection = tdReg.Matches(row);
+                if (i == 0)
+                {
+                    foreach (var rd in tdMatchCollection)
+                    {
+                        var tdValue = RemoveHtml("<td " + rd.ToString().Trim() + "</td>");
+                        DataColumn dc = new DataColumn(tdValue);
+                        dt.Columns.Add(dc);
+                    }
+                }
+                if (i > 0)
+                {
+                    DataRow dr = dt.NewRow();
+                    for (int j = 0; j < tdMatchCollection.Count; j++)
+                    {
+                        var tdValue = RemoveHtml("<td " + tdMatchCollection[j].ToString().Trim() + "</td>");
+                        dr[j] = tdValue;
+                    }
+                    dt.Rows.Add(dr);
+                }
+            }
+            #endregion
+
+
+            #region 第二步：将DataTable导出到Excel
+            result = ExportDataSetToExcel(dt, fileName);
+            #endregion
+
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// 将DataTable导出到Excel
+        /// </summary>
+        /// <param name="dt">DataTable</param> 
+        /// <param name="fileName">仅文件名（非路径）</param> 
+        /// <returns>返回Excel文件绝对路径</returns>
+        public static string ExportDataSetToExcel(DataTable dt, string fileName)
+        {
+            #region 表头
+            XSSFWorkbook hssfworkbook = new XSSFWorkbook();
+            NPOI.SS.UserModel.ISheet hssfSheet = hssfworkbook.CreateSheet("Data");
+            hssfSheet.DefaultColumnWidth = 13;
+            hssfSheet.SetColumnWidth(0, 25 * 256);
+            hssfSheet.SetColumnWidth(3, 20 * 256);
+            // 表头
+            NPOI.SS.UserModel.IRow tagRow = hssfSheet.CreateRow(0);
+            tagRow.Height = 22 * 20;
+
+
+            // 标题样式
+            NPOI.SS.UserModel.ICellStyle cellStyle = hssfworkbook.CreateCellStyle();
+            cellStyle.Alignment = NPOI.SS.UserModel.HorizontalAlignment.Center;
+            cellStyle.VerticalAlignment = NPOI.SS.UserModel.VerticalAlignment.Center;
+            cellStyle.BorderBottom = NPOI.SS.UserModel.BorderStyle.Thin;
+            cellStyle.BorderBottom = NPOI.SS.UserModel.BorderStyle.Thin;
+            cellStyle.BottomBorderColor = NPOI.HSSF.Util.HSSFColor.Black.Index;
+            cellStyle.BorderLeft = NPOI.SS.UserModel.BorderStyle.Thin;
+            cellStyle.LeftBorderColor = NPOI.HSSF.Util.HSSFColor.Black.Index;
+            cellStyle.BorderRight = NPOI.SS.UserModel.BorderStyle.Thin;
+            cellStyle.RightBorderColor = NPOI.HSSF.Util.HSSFColor.Black.Index;
+            cellStyle.BorderTop = NPOI.SS.UserModel.BorderStyle.Thin;
+            cellStyle.TopBorderColor = NPOI.HSSF.Util.HSSFColor.Black.Index;
+
+            NPOI.SS.UserModel.ICellStyle numcellStyle = hssfworkbook.CreateCellStyle();
+            numcellStyle.Alignment = NPOI.SS.UserModel.HorizontalAlignment.Center;
+            numcellStyle.VerticalAlignment = NPOI.SS.UserModel.VerticalAlignment.Center;
+            numcellStyle.BorderBottom = NPOI.SS.UserModel.BorderStyle.Thin;
+            numcellStyle.BorderBottom = NPOI.SS.UserModel.BorderStyle.Thin;
+            numcellStyle.BottomBorderColor = NPOI.HSSF.Util.HSSFColor.Black.Index;
+            numcellStyle.BorderLeft = NPOI.SS.UserModel.BorderStyle.Thin;
+            numcellStyle.LeftBorderColor = NPOI.HSSF.Util.HSSFColor.Black.Index;
+            numcellStyle.BorderRight = NPOI.SS.UserModel.BorderStyle.Thin;
+            numcellStyle.RightBorderColor = NPOI.HSSF.Util.HSSFColor.Black.Index;
+            numcellStyle.BorderTop = NPOI.SS.UserModel.BorderStyle.Thin;
+            numcellStyle.TopBorderColor = NPOI.HSSF.Util.HSSFColor.Black.Index;
+            NPOI.SS.UserModel.IDataFormat fmt = hssfworkbook.CreateDataFormat();
+            numcellStyle.DataFormat = fmt.GetFormat("0.00");
+
+
+            int colIndex;
+            for (colIndex = 0; colIndex < dt.Columns.Count; colIndex++)
+            {
+                tagRow.CreateCell(colIndex).SetCellValue(dt.Columns[colIndex].ColumnName);
+                tagRow.GetCell(colIndex).CellStyle = cellStyle;
+            }
+            #endregion
+            #region 表数据
+            // 表数据  
+            for (int k = 0; k < dt.Rows.Count; k++)
+            {
+                DataRow dr = dt.Rows[k];
+                NPOI.SS.UserModel.IRow row = hssfSheet.CreateRow(k + 1);
+                for (int i = 0; i < dt.Columns.Count; i++)
+                {
+
+
+
+
+                    decimal tryd = 0;
+                    bool IsDecimal = Decimal.TryParse(dr[i].ToString(), out tryd);
+
+                    row.CreateCell(i);
+                    if (IsDecimal)
+                    {
+
+                        row.GetCell(i).SetCellValue(Convert.ToDouble(dr[i]));
+                    }
+
+                    else
+                    {
+                        row.GetCell(i).SetCellValue(dr[i].ToString());
+                    }
+
+
+                }
+            }
+            #endregion
+            FileStream file = new FileStream(HttpContext.Current.Request.PhysicalApplicationPath + "Upload/" + fileName + ".xlsx", FileMode.Create);
+            hssfworkbook.Write(file);
+
+            file.Close();
+            var basePath = VirtualPathUtility.AppendTrailingSlash(HttpContext.Current.Request.ApplicationPath);
+            return (basePath + "Upload/" + fileName + ".xlsx");
+        }
+
+
+
+
+        /// <summary>
+        ///     去除HTML标记
+        /// </summary>
+        /// <param name="htmlstring"></param>
+        /// <returns>已经去除后的文字</returns>
+        public static string RemoveHtml(string htmlstring)
+        {
+            //删除脚本    
+            htmlstring =
+                Regex.Replace(htmlstring, @"<script[^>]*?>.*?</script>",
+                              "", RegexOptions.IgnoreCase);
+            //删除HTML    
+            htmlstring = Regex.Replace(htmlstring, @"<(.[^>]*)>", "", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"([\r\n])[\s]+", "", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"-->", "", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"<!--.*", "", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"&(quot|#34);", "\"", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"&(amp|#38);", "&", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"&(lt|#60);", "<", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"&(gt|#62);", ">", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"&(nbsp|#160);", "   ", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"&(iexcl|#161);", "\xa1", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"&(cent|#162);", "\xa2", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"&(pound|#163);", "\xa3", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"&(copy|#169);", "\xa9", RegexOptions.IgnoreCase);
+            htmlstring = Regex.Replace(htmlstring, @"&#(\d+);", "", RegexOptions.IgnoreCase);
+
+
+            htmlstring = htmlstring.Replace("<", "");
+            htmlstring = htmlstring.Replace(">", "");
+            htmlstring = htmlstring.Replace("\r\n", "");
+            return htmlstring;
+        }
 
     }
     #endregion

@@ -83,7 +83,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="brolib32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="brolib64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Content Include="Libs\Brotli.NET.dll" />
+    <Content Include="Libs\ExcelDataReader.DataSet.dll" />
+    <Content Include="Libs\ExcelDataReader.dll" />
     <Content Include="Libs\Newtonsoft.Json.dll" />
     <Content Include="Libs\NPOI.dll" />
     <Content Include="Libs\NPOI.OOXML.dll" />
