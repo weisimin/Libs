@@ -689,7 +689,7 @@ namespace NetFramework
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception: " + ex.Message,false);
+                Console.WriteLine("Exception: " + ex.Message, false);
                 return null;
             }
 
@@ -1016,15 +1016,9 @@ namespace NetFramework
             return true;
         }
 
-        /// <summary>
-        /// 将DataTable导出到Excel
-        /// </summary>
-        /// <param name="htmlTable">html表格内容</param> 
-        /// <param name="fileName">仅文件名（非路径）</param> 
-        /// <returns>返回Excel文件绝对路径</returns>
-        public static string ExportHtmlTableToExcel(string htmlTable, string fileName)
+
+        public static DataTable ExportHtmlTableToDataTable(string htmlTable, bool FirstRowToColumn = true)
         {
-            string result;
 
             #region 第一步：将HtmlTable转换为DataTable
             htmlTable = htmlTable.Replace("\"", "'");
@@ -1036,16 +1030,21 @@ namespace NetFramework
                 var row = "<tr " + trMatchCollection[i].ToString().Trim() + "</tr>";
                 var tdReg = new Regex(pattern: @"(?<=(<[t|T][d|D|h|H]))[\s\S]*?(?=(</[t|T][d|D|h|H]>))");
                 var tdMatchCollection = tdReg.Matches(row);
+
+
+
                 if (i == 0)
                 {
+                    int BuildColIndex = 0;
                     foreach (var rd in tdMatchCollection)
                     {
                         var tdValue = RemoveHtml("<td " + rd.ToString().Trim() + "</td>");
-                        DataColumn dc = new DataColumn(tdValue);
+                        DataColumn dc = new DataColumn(FirstRowToColumn==true?tdValue:BuildColIndex.ToString());
                         dt.Columns.Add(dc);
+                        BuildColIndex += 1;
                     }
                 }
-                if (i > 0)
+                if (i > 0 || FirstRowToColumn == false)
                 {
                     DataRow dr = dt.NewRow();
                     for (int j = 0; j < tdMatchCollection.Count; j++)
@@ -1055,8 +1054,23 @@ namespace NetFramework
                     }
                     dt.Rows.Add(dr);
                 }
+
             }
             #endregion
+
+            return dt;
+        }
+        /// <summary>
+        /// 将DataTable导出到Excel
+        /// </summary>
+        /// <param name="htmlTable">html表格内容</param> 
+        /// <param name="fileName">仅文件名（非路径）</param> 
+        /// <returns>返回Excel文件绝对路径</returns>
+        public static string ExportHtmlTableToExcel(string htmlTable, string fileName)
+        {
+            string result;
+
+            DataTable dt = ExportHtmlTableToDataTable(htmlTable);
 
 
             #region 第二步：将DataTable导出到Excel
@@ -2511,7 +2525,7 @@ namespace NetFramework
 
 
         }
-       
+
 
     }
     public class Util_MD5
