@@ -92,6 +92,9 @@
     <Content Include="Libs\Brotli.NET.dll" />
     <Content Include="Libs\ExcelDataReader.DataSet.dll" />
     <Content Include="Libs\ExcelDataReader.dll" />
+    <None Include="Libs\ICSharpCode.SharpZipLib.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Content Include="Libs\Newtonsoft.Json.dll" />
     <Content Include="Libs\NPOI.dll" />
     <Content Include="Libs\NPOI.OOXML.dll" />

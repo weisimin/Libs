@@ -699,39 +699,6 @@ namespace NetFramework
 
 
 
-        public static void ExportToExcel(DataTable datasource, string sheetName, string NewFileName, string[] HeaderName)
-        {
-
-            //不允许dataGridView显示添加行，负责导出时会报最后一行未实例化错误
-
-            HSSFWorkbook workbook = new HSSFWorkbook();
-            ISheet sheet = workbook.CreateSheet(sheetName);
-            IRow rowHead = sheet.CreateRow(0);
-
-            //填写表头
-            for (int i = 0; i < HeaderName.LongLength; i++)
-            {
-                rowHead.CreateCell(i, CellType.String).SetCellValue(HeaderName[i]);
-            }
-            //填写内容
-            for (int i = 0; i < datasource.Rows.Count; i++)
-            {
-                IRow row = sheet.CreateRow(i + 1);
-                for (int j = 0; j < datasource.Columns.Count; j++)
-                {
-                    row.CreateCell(j, CellType.String).SetCellValue(
-                        datasource.Rows[i].Field<object>(j) == null ? "" : datasource.Rows[i].Field<object>(j).ToString()
-                        );
-                }
-            }
-
-            using (FileStream stream = File.OpenWrite(NewFileName))
-            {
-                workbook.Write(stream);
-                stream.Close();
-            }
-            GC.Collect();
-        }
 
 
 
@@ -1039,7 +1006,7 @@ namespace NetFramework
                     foreach (var rd in tdMatchCollection)
                     {
                         var tdValue = RemoveHtml("<td " + rd.ToString().Trim() + "</td>");
-                        DataColumn dc = new DataColumn(FirstRowToColumn==true?tdValue:BuildColIndex.ToString());
+                        DataColumn dc = new DataColumn(FirstRowToColumn == true ? tdValue : BuildColIndex.ToString());
                         dt.Columns.Add(dc);
                         BuildColIndex += 1;
                     }
@@ -1169,12 +1136,12 @@ namespace NetFramework
                 }
             }
             #endregion
-            FileStream file = new FileStream(HttpContext.Current.Request.PhysicalApplicationPath + "Upload/" + fileName + ".xlsx", FileMode.Create);
+            FileStream file = new FileStream(fileName, FileMode.Create);
             hssfworkbook.Write(file);
 
             file.Close();
-            var basePath = VirtualPathUtility.AppendTrailingSlash(HttpContext.Current.Request.ApplicationPath);
-            return (basePath + "Upload/" + fileName + ".xlsx");
+
+            return fileName;
         }
 
 
@@ -2733,23 +2700,14 @@ namespace NetFramework
             return dt;
         }
 
-        //Base64 序列化
+        /// <summary>
+        /// Datatable生成Excel表格并返回路径
+        /// </summary>
+        /// <param name="m_DataTable">Datatable</param>
+        /// <param name="s_FileName">文件名</param>
+        /// <returns></returns>
 
-        //        DataTable dt = new DataTable(); //用来转成byte[]的实例
-        //        dt.Columns.Add("a");
-        //dt.Rows.Add("b"); //添加一条测试数据 b
-        //System.IO.MemoryStream memory = new MemoryStream();//使用内存流来存这些byte[]
-        //        BinaryFormatter b = new BinaryFormatter();
-        //        b.Serialize(memory,dt); //系列化datatable,MS已经对datatable实现了系列化接口,如果你自定义的类要系列化,实现IFormatter 就可以类似做法
-        //byte[] buff = memory.GetBuffer(); //这里就可你想要的byte[],可以使用它来传输
-        //        memory.Close();
 
-        ////假如接收的仍是这个byte[] buff,这样来反系列化
-
-        //DataTable dt1 = (DataTable)b.Deserialize(new MemoryStream(buff)); //dt1是byte[]转回的datatable
-        //        Response.Write(dt1.Rows[0][0].ToString());
-
-        ////输出的是 "b"
 
     }
 
