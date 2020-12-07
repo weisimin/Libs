@@ -599,7 +599,32 @@ namespace NetFramework
                     for (int j = row.FirstCellNum; j < cellCount; ++j)
                     {
                         if (row.GetCell(j) != null) //同理，没有数据的单元格都默认是null  
-                            dataRow[j] = row.GetCell(j).ToString();
+                            switch (row.GetCell(j).CellType)
+                            {
+                                case CellType.Unknown:
+                                    dataRow[j] = row.GetCell(j).ToString();
+                                    break;
+                                case CellType.Numeric:
+                                    dataRow[j] = row.GetCell(j).NumericCellValue.ToString();
+                                    break;
+                                case CellType.String:
+                                    dataRow[j] = row.GetCell(j).StringCellValue;
+                                    break;
+                                case CellType.Formula:
+                                    dataRow[j] = row.GetCell(j).CachedFormulaResultType == CellType.Error ? "" : row.GetCell(j).StringCellValue;
+                                    break;
+                                case CellType.Blank:
+                                    dataRow[j] = row.GetCell(j).StringCellValue;
+                                    break;
+                                case CellType.Boolean:
+                                    dataRow[j] = row.GetCell(j).BooleanCellValue;
+                                    break;
+                                case CellType.Error:
+                                    dataRow[j] = row.GetCell(j).ToString();
+                                    break;
+                                default:
+                                    break;
+                            }
                     }
                     data.Rows.Add(dataRow);
                 }
@@ -679,7 +704,32 @@ namespace NetFramework
                         for (int j = row.FirstCellNum; j < cellCount; ++j)
                         {
                             if (row.GetCell(j) != null) //同理，没有数据的单元格都默认是null  
-                                dataRow[j] = row.GetCell(j).ToString();
+                                switch (row.GetCell(j).CellType)
+                                {
+                                    case CellType.Unknown:
+                                        dataRow[j] = row.GetCell(j).ToString();
+                                        break;
+                                    case CellType.Numeric:
+                                        dataRow[j] = row.GetCell(j).NumericCellValue.ToString();
+                                        break;
+                                    case CellType.String:
+                                        dataRow[j] = row.GetCell(j).StringCellValue;
+                                        break;
+                                    case CellType.Formula:
+                                        dataRow[j] = row.GetCell(j).CachedFormulaResultType == CellType.Error ? "" : row.GetCell(j).StringCellValue;
+                                        break;
+                                    case CellType.Blank:
+                                        dataRow[j] = row.GetCell(j).StringCellValue;
+                                        break;
+                                    case CellType.Boolean:
+                                        dataRow[j] = row.GetCell(j).BooleanCellValue;
+                                        break;
+                                    case CellType.Error:
+                                        dataRow[j] = row.GetCell(j).ToString();
+                                        break;
+                                    default:
+                                        break;
+                                }
                         }
                         data.Rows.Add(dataRow);
                     }
@@ -2465,6 +2515,46 @@ namespace NetFramework
             }
             return newRandom.ToString();
         }
+
+        public static void DownloadFile(string URL, string filename)
+        {
+            try
+            {
+                System.Net.HttpWebRequest Myrq = (System.Net.HttpWebRequest)System.Net.HttpWebRequest.Create(URL);
+                System.Net.HttpWebResponse myrp = (System.Net.HttpWebResponse)Myrq.GetResponse();
+                long totalBytes = myrp.ContentLength;
+                //if (prog != null)
+                //{
+                //    prog.Maximum = (int)totalBytes;
+                //}
+                System.IO.Stream st = myrp.GetResponseStream();
+                if (File.Exists(filename))
+                {
+                    File.Delete(filename);
+                }
+                System.IO.Stream so = new System.IO.FileStream(filename, System.IO.FileMode.Create);
+                long totalDownloadedByte = 0;
+                byte[] by = new byte[1024];
+                int osize = st.Read(by, 0, (int)by.Length);
+                while (osize > 0)
+                {
+                    totalDownloadedByte = osize + totalDownloadedByte;
+                    //   System.Windows.Forms.Application.DoEvents();
+                    so.Write(by, 0, osize);
+                    //if (prog != null)
+                    //{
+                    //    prog.Value = (int)totalDownloadedByte;
+                    //}
+                    osize = st.Read(by, 0, (int)by.Length);
+                }
+                so.Close();
+                st.Close();
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
     }
 
     public class Console
@@ -2822,6 +2912,64 @@ namespace NetFramework
             String Return = NetFramework.Util_WEB.OpenUrl("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + AccessToken, "", BODY.ToString(), "POST", cookie);
             NetFramework.Console.Write(Return);
             return Return;
+        }
+
+        public string UploadTempJpg(string ImageFile)
+        {
+            //            请求方式：POST（HTTPS）
+            //请求地址：https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE
+
+            //            使用multipart / form - data POST上传文件， 文件标识名为”media”
+            //参数说明：
+
+            //参数 必须  说明
+            //access_token    是 调用接口凭证
+            //type 是   媒体文件类型，分别有图片（image）、语音（voice）、视频（video），普通文件（file）
+            //POST的请求包中，form - data中媒体文件标识，应包含有 filename、filelength、content - type等信息
+
+            //filename标识文件展示的名称。比如，使用该media_id发消息时，展示的文件名由该字段控制
+
+            //请求示例：
+
+            //POST https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=accesstoken001&type=file HTTP/1.1
+            //Content - Type: multipart / form - data; boundary = -------------------------acebdf13572468
+            //Content - Length: 220
+            //  -------------------------- - acebdf13572468
+            //Content - Disposition: form - data; name = "media"; filename = "wework.txt"; filelength = 6
+            //Content - Type: application / octet - stream
+            //mytext
+            //-------------------------- - acebdf13572468--
+            //返回数据：
+
+            //{
+            //                "errcode": 0,
+            //   "errmsg": ""，
+            //   "type": "image",
+            //   "media_id": "1G6nrLmr5EC3MMb_-zK1dDdzmd0p7cNliYu9V5w7o8K0",
+            //   "created_at": "1380000000"
+            //}
+            //            参数说明：
+
+            //参数 说明
+            //type 媒体文件类型，分别有图片（image）、语音（voice）、视频（video），普通文件(file)
+            //media_id 媒体文件上传后获取的唯一标识，3天内有效
+            //created_at  媒体文件上传时间戳
+
+            FileInfo fi = new FileInfo(ImageFile);
+
+            String Body = "-------------------------acebdf13572468";
+            Body += "Content-Disposition:form-data;name=\"media\";filename=\"" + fi.Name + "\"; filelength=" + fi.Length.ToString();
+            Body += "Content-Type:application/octet-stream";
+            FileStream fs = new FileStream(ImageFile, FileMode.Open);
+            byte[] filedata = new byte[fi.Length];
+            Body += fs.Read(filedata, 0, Convert.ToInt32(fi.Length));
+            BitConverter.ToString(filedata);
+            Body += "-------------------------acebdf13572468--";
+            CookieCollection cc = new CookieCollection();
+            string Result = NetFramework.Util_WEB.OpenUrl("https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=" + AccessToken + "&type=image HTTP/1.1"
+                , "", Body, "POST", cc, Encoding.UTF8, false, true, "multipart/form-data;boundary = -------------------------acebdf13572468");
+            NetFramework.Console.Write(Result);
+            return Result;
         }
 
     }
